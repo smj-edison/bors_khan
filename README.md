@@ -1,21 +1,4 @@
-# BorsKhan
+# Bors khan
+A rewrite of my original khan collab robot. There's still a lot of work to do! As of writing, I have about 70% of the API implemented (albeit somewhat roughly). I'm planning on using POSIX commands this time, like `diff` and `patch` to be more accurate and to make my life easier. I've also redesigned the commands for clarity, but it's only jotted down in my notes currently.
 
-**TODO: Add description**
-
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `bors_khan` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:bors_khan, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/bors_khan>.
 
