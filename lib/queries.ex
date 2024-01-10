@@ -13,7 +13,7 @@ defmodule Queries do
     to_string(rand_list([], count))
   end
 
-  defp get_text!(name) do
+  def get_text!(name) do
     {:ok, query} = File.read([:code.priv_dir(:bors_khan), name <> ".txt"] |> Path.join())
 
     query
@@ -53,6 +53,40 @@ defmodule Queries do
         key: comment["key"],
         expand_key: comment["expandKey"]
       }
+    end)
+  end
+
+  def compact_notifs!(notifs) do
+    Enum.map(notifs, fn notif ->
+      case notif["__typename"] do
+        "ModeratorNotification" ->
+          %{
+            type: :moderator,
+            content: notif["text"],
+            brand_new: notif["brandNew"]
+          }
+
+        "ProgramFeedbackNotification" ->
+          %{
+            type: :program_comment,
+            content: notif["content"],
+            brand_new: notif["brandNew"],
+            expand_key: notif["urlsafeKey"]
+          }
+
+        "ResponseFeedbackNotification" ->
+          %{
+            type: :comment_on_comment,
+            content: notif["content"],
+            brand_new: notif["brandNew"],
+            expand_key: notif["urlsafeKey"]
+          }
+
+        _ ->
+          %{
+            type: :unknown
+          }
+      end
     end)
   end
 
@@ -129,8 +163,15 @@ defmodule Queries do
       "creatorProfile" => %{"kaid" => kaid, "nickname" => nickname},
       "width" => width,
       "height" => height,
-      "originScratchpad" => spun_off_of
+      "originScratchpad" => origin_scratchpad
     } = body["data"]["programById"]
+
+    spun_off_of =
+      if origin_scratchpad != nil do
+        List.last(String.split(origin_scratchpad["url"], "/"))
+      else
+        nil
+      end
 
     %{
       title: title,
@@ -146,6 +187,8 @@ defmodule Queries do
   end
 
   def create_program!(cookies, title, type, code) do
+    # TODO: check title for inappropriateness here
+
     %{:status => 200, :body => body} =
       Req.post!(build_req(cookies, "createProgram"),
         json: %{
@@ -169,6 +212,8 @@ defmodule Queries do
   end
 
   def update_program!(cookies, program_id, title, code) do
+    # TODO: check title for inappropriateness here
+
     %{:status => 200} =
       Req.post!(build_req(cookies, "updateProgram"),
         json: %{
@@ -285,7 +330,7 @@ defmodule Queries do
 
     feedback = body["data"]["addFeedbackToDiscussion"]["feedback"]
 
-    %{key: feedback["key"], expandKey: feedback["expandKey"]}
+    %{key: feedback["key"], expand_key: feedback["expandKey"]}
   end
 
   def comment_on_comment!(cookies, comment_key, content) do
@@ -306,6 +351,24 @@ defmodule Queries do
 
     feedback = body["data"]["addFeedbackToDiscussion"]["feedback"]
 
-    %{key: feedback["key"], expandKey: feedback["expandKey"]}
+    %{key: feedback["key"], expand_key: feedback["expandKey"]}
+  end
+
+  def get_notifications!(cookies, cursor) do
+    %{status: 200, body: body} =
+      Req.post!(build_req(cookies, "getNotificationsForUser"),
+        json: %{
+          "operationName" => "getNotificationsForUser",
+          "query" => get_text!("get_notifications"),
+          "variables" => %{
+            "after" => cursor
+          }
+        }
+      )
+
+    %{
+      "pageInfo" => %{"nextCursor" => next_cursor},
+      "notifications" => notifs
+    } = body["data"]["user"]["notifications"]
   end
 end
