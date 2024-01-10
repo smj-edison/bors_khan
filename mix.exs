@@ -24,7 +24,8 @@ defmodule BorsKhan.MixProject do
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
       {:req, "~> 0.4.0"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+      {:erlport, "~> 0.10.1"}
     ]
   end
 end
